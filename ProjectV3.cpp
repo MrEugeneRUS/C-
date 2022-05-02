@@ -53,12 +53,6 @@ int main ()
 
     coord stone  = {-353, 598};
 
-    //warriors coords[] = {{-200, 627, blue}, {870, 627, red}, {985, 627, red}, {1100, 627, red}, {1215, 627, red}, {1330, 627, red}};
-
-    //warrior capulet[] = {{870, 627, red}, {985, 627, red}, {1100, 627, red}, {1215, 627, red}, {1330, 627, red}};
-
-    //warrior montek = {-200, 627, blue};
-
     coord warrior[] = {{870, 627}, {985, 627}, {1100, 627}, {1215, 627}, {1330, 627}};
 
     coord clouds[] = {{750, 45},  {1050, 95}, {450, 125},  {1350, 125}};
@@ -86,7 +80,7 @@ int main ()
 
     int t = 0;
 
-    while (t < 150)
+    while (catapult.x <= 50)
     {
 
 
@@ -135,7 +129,7 @@ int main ()
 
 
     double ti = 0;
-    double e = 0.003;
+    double e = 0.0045;
 
     while (alphaDeg >= 135)
     {
@@ -185,20 +179,28 @@ int main ()
         DrawWarrior (monteki,    blue);
 
         txSleep(1);
-        ti += 10;
+        ti += 3;
 
 
     }
 
-    int v = e * ti * 182;
-
+    double v = e * ti * 182;
 
     double time = 0;
 
     int stone0x = stone.x;
     int stone0y = stone.y;
 
-    while (time < 50)
+    double angle0 = alphaRad - M_PI/2;
+    double angle = angle0;
+
+    double v0x = v * cos(angle0);
+    double v0y = v * sin(angle);
+
+    int m = 1;
+    int n = 1;
+
+    while (stone.y <= 675)
     {
         txClear();
 
@@ -230,28 +232,37 @@ int main ()
 
         DrawWarrior (monteki,    blue);
 
+        stone.x += m * v0x * 0.1;
+        stone.y = stone0y - n * v * sin(angle) * time + (9.81 * time * time) / 2;
 
-        stone.x = stone0x + v * time * cos(alphaRad - M_PI/2);
-        stone.y = stone0y - v * time * sin(alphaRad - M_PI/2) + (9.81 * time * time) / 2;
+        double vy = v0y - 9.81 * time;
 
+        for (int i = 0; i < 5; i++) {
 
-        if ((stone.x >= warrior[0].x - 55 - 25) && (stone.x <= warrior[0].x + 55 + 25) && (stone.y >= warrior[0].y - 38 - 25) && (stone.y <= warrior[0].y + 74 + 25)) {
+            if ((stone.x >= warrior[i].x - 55 - 25) && (stone.x <= warrior[i].x + 55 + 25) && (stone.y >= warrior[i].y - 38 - 25) && (stone.y <= warrior[i].y + 74 + 25)) {
 
-            warrior[0].y = 900;
-            DrawSky (sky[0]);
-            DrawWarrior (warrior[0], red);
+                warrior[i].y = 900;
+                DrawSky (sky[i]);
+                DrawWarrior (warrior[i], red);
+            }
         }
 
+        if (((stone.x >= wall.x - 25) && (stone.x <= wall.x) && (stone.y >= wall.y) && (stone.y <= 650)) || (stone.x >= 1500)) {
+
+            m = -1;
+        }
+
+        if ((stone.x >= wall.x) && (stone.x <= wall.x + 80) && (stone.y >= wall.y - 25)) {
+
+           angle = atan(vy / v0x);
+           stone0y = stone.y;
+           time = 0;
+        }
 
         DrawStone(stone);
 
-        if (stone.y >= 675) {
-
-            break;
-        }
-
         txSleep(10);
-        time += 1;
+        time += 0.1;
 
     }
 
