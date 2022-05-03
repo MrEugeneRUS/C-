@@ -33,8 +33,6 @@ void DrawRays     (coord rays);
 
 void DrawClouds    (coord clouds);
 
-void DrawSky    (coord sky);
-
 int main ()
 {
     txCreateWindow (1500, 800);
@@ -59,8 +57,6 @@ int main ()
 
     coord monteki   = {-200, 627};
 
-    coord sky[] = {{814, 579}, {929, 579}, {1044, 579}, {1159, 579}, {1274, 579}};
-
     COLORREF red  = RGB (204, 29, 64);
 
     COLORREF blue = RGB (0, 99, 198);
@@ -77,8 +73,6 @@ int main ()
     DrawClouds (clouds[2]);
     DrawClouds (clouds[3]);
 
-
-    int t = 0;
 
     while (catapult.x <= 50)
     {
@@ -124,11 +118,10 @@ int main ()
         DrawWarrior (monteki,    blue);
 
         txSleep(10);
-        t += 1;
     }
 
 
-    double ti = 0;
+    double t = 0;
     double e = 0.0045;
 
     while (alphaDeg >= 135)
@@ -155,7 +148,7 @@ int main ()
         stone.x = lever0.x + 162 * cos(alphaRad);
         stone.y = lever0.y - 162 * sin(alphaRad);
 
-        alphaDeg = 160 - e * ti * ti / 2;
+        alphaDeg = 160 - e * t * t / 2;
         alphaRad = alphaDeg * M_PI / 180;
 
         DrawRope(catapult, lever1);
@@ -179,12 +172,12 @@ int main ()
         DrawWarrior (monteki,    blue);
 
         txSleep(1);
-        ti += 3;
+        t += 3;
 
 
     }
 
-    double v = e * ti * 182;
+    double v = e * t * 182;
 
     double time = 0;
 
@@ -242,7 +235,6 @@ int main ()
             if ((stone.x >= warrior[i].x - 55 - 25) && (stone.x <= warrior[i].x + 55 + 25) && (stone.y >= warrior[i].y - 38 - 25) && (stone.y <= warrior[i].y + 74 + 25)) {
 
                 warrior[i].y = 900;
-                DrawSky (sky[i]);
                 DrawWarrior (warrior[i], red);
             }
         }
@@ -553,9 +545,3 @@ void DrawWarrior (coord warrior, COLORREF color)
     Belt    (warrior);
 }
 
-void DrawSky (coord sky)
-{
-    txSetColor  (RGB(153, 217, 234));
-    txSetFillColor  (RGB(153, 217, 234));
-    txRectangle (sky.x, sky.y, sky.x + 112, sky.y + 74 + 48);
-}
