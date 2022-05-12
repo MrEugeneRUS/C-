@@ -23,6 +23,7 @@ void DrawRays     ();
 void DrawClouds    ();
 void DrawWarriors();
 void DrawFinalAngleValue();
+void DrawFinalCatapult();
 
 void CalculateCatapult();
 void CalculateLever();
@@ -30,20 +31,22 @@ void CalculateStone();
 
 LRESULT CALLBACK MyWndProc (HWND window, UINT message, WPARAM wParam, LPARAM lParam);
 
-coord lever0     = {-198, 650};
-coord lever1     = {-368, 586};
-coord bucket     =  {-353, 598};
-coord catapult   = {-400, 635};
+coord lever0     = {202, 650};
+coord lever1     = {32, 586};
+coord bucket     =  {47, 598};
+coord catapult   = {0, 635};
 coord wall   = {710, 400};
 coord rays   = {210, 5};
-coord stone  = {-353, 598};
+coord stone  = {bucket.x, bucket.y};
 double stoneSpeedX = 0;
 double stoneSpeedY = 0;
 int xDirection = 1;
 int finalAngle = 135;
+int finalCatapult = 70;
+
 
 coord warrior[] = {{870, 627}, {985, 627}, {1100, 627}, {1215, 627}, {1330, 627}};
-coord monteki   = {-200, 627};
+coord monteki   = {200, 627};
 COLORREF red  = RGB (204, 29, 64);
 COLORREF blue = RGB (0, 99, 198);
 
@@ -52,6 +55,7 @@ void Calculate();
 void Draw();
 bool NeedContinue();
 bool needContinue;
+bool isCatapultMoving = false;
 bool isLeverMoving = false;
 bool isStoneMoving = false;
 
@@ -93,6 +97,7 @@ void Draw()
     DrawCatapult();
     DrawWarriors();
     DrawFinalAngleValue();
+    DrawFinalCatapult();
 
     txEnd();
 }
@@ -409,14 +414,20 @@ void DrawWarrior (coord warrior, COLORREF color)
 
 void CalculateCatapult()
 {
-    const int speed = 3;
-    if (catapult.x <= 40) {
+    const int speed = 1;
+    if (catapult.x <= finalCatapult) {
         catapult.x += speed;
         lever0.x += speed;
         lever1.x += speed;
         bucket.x += speed;
         monteki.x += speed;
-        stone.x += speed;
+    }
+    if (catapult.x > finalCatapult) {
+        catapult.x -= speed;
+        lever0.x -= speed;
+        lever1.x -= speed;
+        bucket.x -= speed;
+        monteki.x -= speed;
     }
 }
 
@@ -487,21 +498,38 @@ void DrawFinalAngleValue()
 
 }
 
+void DrawFinalCatapult()
+{
+    char buffer[100];
+    sprintf( buffer, "Координата катапульты: %d", finalCatapult );
+    txSetColor(TX_BLACK, 3);
+    txSelectFont ("Verdana", 40);
+    txTextOut (400, 750, buffer);
+}
+
 LRESULT CALLBACK MyWndProc (HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    const int minAngle = 120;
+    const int minAngle = 90;
     const int maxAngle = 160;
-    if( message == WM_KEYUP ) {
+    if( message == WM_KEYDOWN ) {
         if( wParam == VK_UP && finalAngle < maxAngle ) {
             finalAngle++;
         }
+
         if( wParam == VK_DOWN && finalAngle > minAngle ) {
             finalAngle--;
         }
         if( wParam == VK_SPACE ) {
             isLeverMoving = true;
         }
+        if( wParam == VK_RIGHT) {
+            finalCatapult++;
+        }
+        if( wParam == VK_LEFT) {
+            finalCatapult--;
+        }
         if( wParam == VK_RETURN ) {
+            isCatapultMoving = false;
             isLeverMoving = false;
             isStoneMoving = false;
             alphaDeg = 160;
