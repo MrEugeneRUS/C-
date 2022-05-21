@@ -24,6 +24,8 @@ void DrawClouds    ();
 void DrawWarriors();
 void DrawFinalAngleValue();
 void DrawFinalCatapult();
+void DrawScore();
+void DrawGameOver();
 
 void CalculateCatapult();
 void CalculateLever();
@@ -38,11 +40,14 @@ coord catapult   = {0, 635};
 coord wall   = {710, 400};
 coord rays   = {210, 5};
 coord stone  = {bucket.x, bucket.y};
+coord gameover = {300, 900};
+
 double stoneSpeedX = 0;
 double stoneSpeedY = 0;
 int xDirection = 1;
 int finalAngle = 135;
 int finalCatapult = 70;
+int score = 0;
 
 
 coord warrior[] = {{870, 627}, {985, 627}, {1100, 627}, {1215, 627}, {1330, 627}};
@@ -58,9 +63,11 @@ bool needContinue;
 bool isCatapultMoving = false;
 bool isLeverMoving = false;
 bool isStoneMoving = false;
+bool isGameOver = false;
 
 void DrawBackground();
-
+void processRestart();
+void processReload();
 
 int main()
 {
@@ -98,6 +105,8 @@ void Draw()
     DrawWarriors();
     DrawFinalAngleValue();
     DrawFinalCatapult();
+    DrawScore();
+    DrawGameOver();
 
     txEnd();
 }
@@ -415,14 +424,14 @@ void DrawWarrior (coord warrior, COLORREF color)
 void CalculateCatapult()
 {
     const int speed = 1;
-    if (catapult.x <= finalCatapult) {
+    if (catapult.x <= finalCatapult && !isGameOver) {
         catapult.x += speed;
         lever0.x += speed;
         lever1.x += speed;
         bucket.x += speed;
         monteki.x += speed;
     }
-    if (catapult.x > finalCatapult) {
+    if (catapult.x > finalCatapult && !isGameOver) {
         catapult.x -= speed;
         lever0.x -= speed;
         lever1.x -= speed;
@@ -446,11 +455,11 @@ void CalculateLever()
         stone.y = bucket.y;
     }
 
-    if (isLeverMoving && alphaDeg >= finalAngle) {
+    if ( isLeverMoving && alphaDeg >= finalAngle && !isGameOver ) {
         alphaDeg = 160 - e * t * t / 2;
         t += 3;
     }
-    if ( isLeverMoving && alphaDeg < finalAngle && !isStoneMoving ) {
+    if ( isLeverMoving && alphaDeg < finalAngle && !isStoneMoving) {
         isStoneMoving = true;
         double stoneSpeed =  e * t * 182;
         stoneSpeedX = stoneSpeed * cos( alphaRad - M_PI/2 );
@@ -462,7 +471,7 @@ void CalculateLever()
 
 void CalculateStone()
 {
-    if (isStoneMoving && stone.y <= 675) {
+    if (isStoneMoving && stone.y <= 675 && !isGameOver) {
         const double deltaT = 0.1;
         stone.x += xDirection * stoneSpeedX * deltaT;
         stone.y += -stoneSpeedY * deltaT + (9.81 * deltaT * deltaT) / 2;
@@ -473,10 +482,20 @@ void CalculateStone()
             if ((stone.x >= warrior[i].x - 55 - 25) && (stone.x <= warrior[i].x + 55 + 25) && (stone.y >= warrior[i].y - 38 - 25) && (stone.y <= warrior[i].y + 74 + 25)) {
 
                 warrior[i].y = 900;
+                score++;
             }
         }
 
-        if (((stone.x >= wall.x - 25) && (stone.x <= wall.x) && (stone.y >= wall.y) && (stone.y <= 650)) || (stone.x >= 1500)) {
+        if ((stone.x >= monteki.x - 55 - 25) && (stone.x <= monteki.x + 55 + 25) && (stone.y >= monteki.y - 38 - 25) && (stone.y <= monteki.y + 74 + 25)) {
+
+                monteki.y = 900;
+                gameover.y = 200;
+                isGameOver = true;
+                DrawGameOver();
+
+            }
+
+        if (((stone.x >= wall.x - 25) && (stone.x <= wall.x) && (stone.y > wall.y - 25) && (stone.y <= 650)) || (stone.x >= 1500)) {
 
             xDirection = -1;
         }
@@ -507,43 +526,104 @@ void DrawFinalCatapult()
     txTextOut (400, 750, buffer);
 }
 
+void DrawScore()
+{
+    char buffer[100];
+    sprintf( buffer, "—чЄт: %d", score );
+    txSetColor(TX_BLACK, 3);
+    txSelectFont ("Verdana", 40);
+    txTextOut (800, 750, buffer);
+
+}
+
+void DrawGameOver()
+{
+    char buffer[100];
+    sprintf( buffer, "»гра окончена");
+    txSetColor(TX_RED, 10);
+    txSelectFont ("Verdana", 200);
+    txTextOut (gameover.x, gameover.y, buffer);
+}
+
 LRESULT CALLBACK MyWndProc (HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
     const int minAngle = 90;
     const int maxAngle = 160;
     if( message == WM_KEYDOWN ) {
-        if( wParam == VK_UP && finalAngle < maxAngle ) {
-            finalAngle++;
-        }
-
-        if( wParam == VK_DOWN && finalAngle > minAngle ) {
-            finalAngle--;
-        }
-        if( wParam == VK_SPACE ) {
-            isLeverMoving = true;
-        }
-        if( wParam == VK_RIGHT) {
-            finalCatapult++;
-        }
-        if( wParam == VK_LEFT) {
-            finalCatapult--;
-        }
-        if( wParam == VK_RETURN ) {
-            isCatapultMoving = false;
-            isLeverMoving = false;
-            isStoneMoving = false;
-            alphaDeg = 160;
-            stoneSpeedX = 0;
-            stoneSpeedY = 0;
-            stone.x = bucket.x;
-            stone.y = bucket.y;
-            xDirection = 1;
+        switch( wParam ) {
+            case VK_UP:
+                if( finalAngle < maxAngle ) {
+                    finalAngle++;
+                }
+                break;
+            case VK_DOWN:
+                if( finalAngle > minAngle ) {
+                    finalAngle--;
+                }
+                break;
+            case VK_SPACE:
+                isLeverMoving = true;
+                break;
+            case VK_RIGHT:
+                finalCatapult++;
+                break;
+            case VK_LEFT:
+                finalCatapult--;
+                break;
+            case VK_RETURN:
+                processReload();
         }
         return true;
+    }
+    if( message == WM_CHAR ) {
+        if( wParam == 'R' || wParam == 'r' ) {
+            processRestart();
+        }
     }
     if( message == WM_CLOSE ) {
         needContinue = false;
         return true;
     }
     return false;
+}
+
+void processRestart()
+{
+    isGameOver = false;
+    isCatapultMoving = false;
+    isLeverMoving = false;
+    isStoneMoving = false;
+
+    alphaDeg = 160;
+    stoneSpeedX = 0;
+    stoneSpeedY = 0;
+    score = 0;
+    xDirection = 1;
+    finalAngle = 135;
+    finalCatapult = 70;
+
+    gameover.y = 900;
+    catapult.x = 0;
+    lever0.x = 202;
+    stone.x = bucket.x;
+    stone.y = bucket.y;
+    monteki.x = 200;
+    monteki.y = 627;
+    for (int i = 0; i < 5; i++) {
+        warrior[i].y = 627;
+    }
+
+}
+
+void processReload()
+{
+    isCatapultMoving = false;
+    isLeverMoving = false;
+    isStoneMoving = false;
+    alphaDeg = 160;
+    stoneSpeedX = 0;
+    stoneSpeedY = 0;
+    stone.x = bucket.x;
+    stone.y = bucket.y;
+    xDirection = 1;
 }
