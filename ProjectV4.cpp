@@ -3,8 +3,8 @@
 
 struct coord
 {
-    int x;
-    int y;
+    double x;
+    double y;
 };
 
 double alphaDeg = 160;
@@ -26,6 +26,8 @@ void DrawFinalAngleValue();
 void DrawFinalCatapult();
 void DrawScore();
 void DrawGameOver();
+void DrawStartTitres();
+void DrawTrajectory();
 
 void CalculateCatapult();
 void CalculateLever();
@@ -64,6 +66,7 @@ bool isCatapultMoving = false;
 bool isLeverMoving = false;
 bool isStoneMoving = false;
 bool isGameOver = false;
+bool isPause = false;
 
 void DrawBackground();
 void processRestart();
@@ -87,6 +90,8 @@ void Init()
     txDisableAutoPause();
     txTextCursor(false);
     txSetWindowsHook (MyWndProc);
+    DrawStartTitres();
+    txSleep(5000);
 }
 
 void Calculate()
@@ -107,6 +112,7 @@ void Draw()
     DrawFinalCatapult();
     DrawScore();
     DrawGameOver();
+    DrawTrajectory();
 
     txEnd();
 }
@@ -424,14 +430,14 @@ void DrawWarrior (coord warrior, COLORREF color)
 void CalculateCatapult()
 {
     const int speed = 1;
-    if (catapult.x <= finalCatapult && !isGameOver) {
+    if ( catapult.x <= finalCatapult && !isGameOver && !isPause && catapult.x <= wall.x - 400) {
         catapult.x += speed;
         lever0.x += speed;
         lever1.x += speed;
         bucket.x += speed;
         monteki.x += speed;
     }
-    if (catapult.x > finalCatapult && !isGameOver) {
+    if ( catapult.x > finalCatapult && !isGameOver && !isPause ) {
         catapult.x -= speed;
         lever0.x -= speed;
         lever1.x -= speed;
@@ -455,11 +461,11 @@ void CalculateLever()
         stone.y = bucket.y;
     }
 
-    if ( isLeverMoving && alphaDeg >= finalAngle && !isGameOver ) {
-        alphaDeg = 160 - e * t * t / 2;
+    if ( isLeverMoving && alphaDeg >= finalAngle && !isGameOver && !isPause ) {
+        alphaDeg = 160.0 - e * t * t / 2;
         t += 3;
     }
-    if ( isLeverMoving && alphaDeg < finalAngle && !isStoneMoving) {
+    if ( isLeverMoving && alphaDeg < finalAngle && !isStoneMoving && !isPause ) {
         isStoneMoving = true;
         double stoneSpeed =  e * t * 182;
         stoneSpeedX = stoneSpeed * cos( alphaRad - M_PI/2 );
@@ -471,7 +477,7 @@ void CalculateLever()
 
 void CalculateStone()
 {
-    if (isStoneMoving && stone.y <= 675 && !isGameOver) {
+    if ( isStoneMoving && stone.y <= 675 && !isGameOver && !isPause ) {
         const double deltaT = 0.1;
         stone.x += xDirection * stoneSpeedX * deltaT;
         stone.y += -stoneSpeedY * deltaT + (9.81 * deltaT * deltaT) / 2;
@@ -495,7 +501,7 @@ void CalculateStone()
 
             }
 
-        if (((stone.x >= wall.x - 25) && (stone.x <= wall.x) && (stone.y > wall.y - 25) && (stone.y <= 650)) || (stone.x >= 1500)) {
+        if ((stone.x >= wall.x - 25) && (stone.x <= wall.x) && (stone.y > wall.y - 25) && (stone.y <= 650)) {
 
             xDirection = -1;
         }
@@ -523,7 +529,7 @@ void DrawFinalCatapult()
     sprintf( buffer, "Координата катапульты: %d", finalCatapult );
     txSetColor(TX_BLACK, 3);
     txSelectFont ("Verdana", 40);
-    txTextOut (400, 750, buffer);
+    txTextOut (50, 700, buffer);
 }
 
 void DrawScore()
@@ -531,8 +537,8 @@ void DrawScore()
     char buffer[100];
     sprintf( buffer, "Счёт: %d", score );
     txSetColor(TX_BLACK, 3);
-    txSelectFont ("Verdana", 40);
-    txTextOut (800, 750, buffer);
+    txSelectFont ("Verdana", 60);
+    txTextOut (1300, 0, buffer);
 
 }
 
@@ -543,6 +549,23 @@ void DrawGameOver()
     txSetColor(TX_RED, 10);
     txSelectFont ("Verdana", 200);
     txTextOut (gameover.x, gameover.y, buffer);
+}
+
+void DrawStartTitres()
+{
+    txSetFillColor(TX_BLACK);
+    txRectangle(0, 0, 1500, 800);
+    txSetColor(TX_WHITE, 50);
+    char bufferHeader[100];
+    sprintf( bufferHeader, "Моделирование процесса полёта снаряда из катапульты \n");
+    txSelectFont ("Times New Roman", 100);
+    txDrawText (325, 100, 1175, 500, bufferHeader);
+
+    char bufferCreator[100];
+    sprintf( bufferCreator, "Автор: Павлов Евгений \n");
+    txSelectFont ("Times New Roman", 50);
+    txDrawText (325, 500, 1175, 600, bufferCreator);
+
 }
 
 LRESULT CALLBACK MyWndProc (HWND window, UINT message, WPARAM wParam, LPARAM lParam)
@@ -565,20 +588,35 @@ LRESULT CALLBACK MyWndProc (HWND window, UINT message, WPARAM wParam, LPARAM lPa
                 isLeverMoving = true;
                 break;
             case VK_RIGHT:
-                finalCatapult++;
+                if(catapult.x <= wall.x - 400) {
+                    finalCatapult++;
+                }
                 break;
             case VK_LEFT:
                 finalCatapult--;
                 break;
-            case VK_RETURN:
-                processReload();
+            case VK_ESCAPE:
+                needContinue = false;
+                break;
         }
         return true;
     }
     if( message == WM_CHAR ) {
-        if( wParam == 'R' || wParam == 'r' ) {
-            processRestart();
+        switch( wParam ) {
+            case 'r':
+            case 'R':
+                processRestart();
+                break;
+            case 'p':
+            case 'P':
+                isPause = !isPause;
+                break;
+            case 'f':
+            case 'F':
+                processReload();
+                break;
         }
+        return true;
     }
     if( message == WM_CLOSE ) {
         needContinue = false;
@@ -627,3 +665,49 @@ void processReload()
     stone.y = bucket.y;
     xDirection = 1;
 }
+
+void DrawTrajectory()
+{
+    if ( isLeverMoving || isCatapultMoving || isStoneMoving ) {
+        return;
+    }
+    const double e = 0.0045;
+    const double deltaT = 0.5;
+
+    double t = 0;
+    double deg = 160;
+    double rad = 0;
+    while( deg >= finalAngle ) {
+        rad = deg * M_PI / 180;
+        deg = 160.0 - e * t * t / 2;
+        t += 3;
+    }
+
+    const double speed = e * t * 182;
+
+    const double speedX = speed * cos( rad - M_PI/2 );
+    double speedY = speed * sin( rad - M_PI/2 );
+    double x = lever0.x + 162 * cos(rad);
+    double y = lever0.y - 162 * sin(rad);
+    double direction = 1;
+
+    while ( y <= 675 ) {
+        txSetFillColor(TX_RED);
+        txSetColor(TX_RED, 0);
+        txCircle(x, y, 3);
+        x += direction * speedX * deltaT;
+        y += -speedY * deltaT + (9.81 * deltaT * deltaT) / 2;
+        speedY -= 9.81 * deltaT;
+
+        if ((x >= wall.x - 25) && (x <= wall.x + 80) && (y > wall.y - 25) && (y <= 650)) {
+            direction = -1;
+        }
+
+        if ((x >= wall.x) && (x <= wall.x + 80) && (y >= wall.y - 25)) {
+           speedY = -speedY;
+        }
+    }
+
+
+}
+
