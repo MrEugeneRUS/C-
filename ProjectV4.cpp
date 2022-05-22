@@ -28,6 +28,7 @@ void DrawScore();
 void DrawGameOver();
 void DrawStartTitres();
 void DrawTrajectory();
+void DrawAnswer();
 
 void CalculateCatapult();
 void CalculateLever();
@@ -39,7 +40,7 @@ coord lever0     = {202, 650};
 coord lever1     = {32, 586};
 coord bucket     =  {47, 598};
 coord catapult   = {0, 635};
-coord wall   = {710, 400};
+coord wall   = {710, 440};
 coord rays   = {210, 5};
 coord stone  = {bucket.x, bucket.y};
 coord gameover = {300, 900};
@@ -49,6 +50,7 @@ double stoneSpeedY = 0;
 int xDirection = 1;
 int finalAngle = 135;
 int finalCatapult = 70;
+int answer = 0;
 int score = 0;
 
 
@@ -91,7 +93,7 @@ void Init()
     txTextCursor(false);
     txSetWindowsHook (MyWndProc);
     DrawStartTitres();
-    txSleep(5000);
+    txSleep(4000);
 }
 
 void Calculate()
@@ -106,13 +108,15 @@ void Draw()
     txBegin();
     txClear();
     DrawBackground();
+    DrawTrajectory();
     DrawCatapult();
     DrawWarriors();
     DrawFinalAngleValue();
     DrawFinalCatapult();
     DrawScore();
+    DrawAnswer();
     DrawGameOver();
-    DrawTrajectory();
+
 
     txEnd();
 }
@@ -294,7 +298,7 @@ void DrawWallEven(coord wall)
 
 void DrawWall (coord wall)
 {
-    for( int i = 0; i < 7; i++ )
+    for( int i = 0; i < 6; i++ )
     {
         DrawWallOdd (wall);
         wall.y += 20;
@@ -462,12 +466,12 @@ void CalculateLever()
     }
 
     if ( isLeverMoving && alphaDeg >= finalAngle && !isGameOver && !isPause ) {
-        alphaDeg = 160.0 - e * t * t / 2;
+        alphaDeg = 160 - e * t * t / 2;
         t += 3;
     }
     if ( isLeverMoving && alphaDeg < finalAngle && !isStoneMoving && !isPause ) {
         isStoneMoving = true;
-        double stoneSpeed =  e * t * 182;
+        double stoneSpeed =  e * t * 162;
         stoneSpeedX = stoneSpeed * cos( alphaRad - M_PI/2 );
         stoneSpeedY = stoneSpeed * sin( alphaRad - M_PI/2 );
         isLeverMoving = false;
@@ -566,6 +570,15 @@ void DrawStartTitres()
     txSelectFont ("Times New Roman", 50);
     txDrawText (325, 500, 1175, 600, bufferCreator);
 
+}
+
+void DrawAnswer()
+{
+    char buffer[100];
+    sprintf( buffer, "Ответ: %d", answer );
+    txSetColor(TX_BLACK, 3);
+    txSelectFont ("Verdana", 40);
+    txTextOut (500, 700, buffer);
 }
 
 LRESULT CALLBACK MyWndProc (HWND window, UINT message, WPARAM wParam, LPARAM lParam)
@@ -668,22 +681,19 @@ void processReload()
 
 void DrawTrajectory()
 {
-    if ( isLeverMoving || isCatapultMoving || isStoneMoving ) {
-        return;
-    }
     const double e = 0.0045;
-    const double deltaT = 0.5;
+    const double deltaT = 0.05;
 
     double t = 0;
     double deg = 160;
     double rad = 0;
     while( deg >= finalAngle ) {
         rad = deg * M_PI / 180;
-        deg = 160.0 - e * t * t / 2;
+        deg = 160 - e * t * t / 2;
         t += 3;
     }
 
-    const double speed = e * t * 182;
+    const double speed = e * t * 162;
 
     const double speedX = speed * cos( rad - M_PI/2 );
     double speedY = speed * sin( rad - M_PI/2 );
@@ -699,7 +709,7 @@ void DrawTrajectory()
         y += -speedY * deltaT + (9.81 * deltaT * deltaT) / 2;
         speedY -= 9.81 * deltaT;
 
-        if ((x >= wall.x - 25) && (x <= wall.x + 80) && (y > wall.y - 25) && (y <= 650)) {
+        if ((x >= wall.x - 25) && (x <= wall.x ) && (y > wall.y - 25) && (y <= 650)) {
             direction = -1;
         }
 
@@ -707,7 +717,5 @@ void DrawTrajectory()
            speedY = -speedY;
         }
     }
-
-
+    answer = x - (wall.x + 80);
 }
-
