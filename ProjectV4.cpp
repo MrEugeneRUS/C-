@@ -30,6 +30,8 @@ void DrawStartTitres();
 void DrawTrajectory();
 void DrawAnswer();
 void DrawControl();
+void DrawPause();
+void DrawHint();
 
 void CalculateCatapult();
 void CalculateLever();
@@ -45,6 +47,8 @@ coord wall   = {710, 440};
 coord rays   = {210, 5};
 coord stone  = {bucket.x, bucket.y};
 coord gameover = {300, 900};
+coord control = {325, 900};
+coord pause = {500, 900};
 
 double stoneSpeedX = 0;
 double stoneSpeedY = 0;
@@ -70,6 +74,7 @@ bool isLeverMoving = false;
 bool isStoneMoving = false;
 bool isGameOver = false;
 bool isPause = false;
+bool isControl = false;
 
 void DrawBackground();
 void processRestart();
@@ -117,6 +122,8 @@ void Draw()
     DrawScore();
     DrawAnswer();
     DrawControl();
+    DrawHint();
+    DrawPause();
     DrawGameOver();
 
 
@@ -563,7 +570,7 @@ void DrawStartTitres()
     txRectangle(0, 0, 1500, 800);
     txSetColor(TX_WHITE, 50);
     char bufferHeader[100];
-    sprintf( bufferHeader, "Моделирование процесса полёта снаряда из катапульты \n");
+    sprintf( bufferHeader, "Моделирование процесса полёта снаряда катапульты \n");
     txSelectFont ("Times New Roman", 100);
     txDrawText (325, 100, 1175, 500, bufferHeader);
 
@@ -580,19 +587,37 @@ void DrawAnswer()
     sprintf( buffer, "Ответ: %d", answer );
     txSetColor(TX_BLACK, 3);
     txSelectFont ("Verdana", 40);
-    txTextOut (500, 700, buffer);
+    txTextOut (500, 750, buffer);
 }
 
 void DrawControl()
 {
     char buffer[100];
     txSelectFont ("Verdana", 30);
-    txDrawText (325, 100, 1175, 500, "Катапульта: стрелки влево и вправо \n"
+    txDrawText (control.x, control.y, control.x + 850, control.y + 400, "Катапульта: стрелки влево и вправо \n"
                                      "Угол: стрелки вверх и вниз \n"
                                      "Огонь: пробел \n"
                                      "Перезарядка: F \n"
                                      "Пауза: P \n"
                                      "Рестарт: R");
+}
+
+void DrawPause()
+{
+    char buffer[100];
+    sprintf( buffer, "Пауза");
+    txSetColor(TX_BLACK, 3);
+    txSelectFont ("Verdana", 80);
+    txDrawText (pause.x, pause.y, pause.x + 500, pause.y + 400, buffer);
+}
+
+void DrawHint()
+{
+    char buffer[100];
+    sprintf( buffer, "H: показать управление");
+    txSetColor(TX_BLACK, 3);
+    txSelectFont ("Verdana", 40);
+    txTextOut (500, 700, buffer);
 }
 LRESULT CALLBACK MyWndProc (HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -636,10 +661,26 @@ LRESULT CALLBACK MyWndProc (HWND window, UINT message, WPARAM wParam, LPARAM lPa
             case 'p':
             case 'P':
                 isPause = !isPause;
+                if( isPause ) {
+                    pause.y = 100;
+                }
+                else {
+                    pause.y = 900;
+                }
                 break;
             case 'f':
             case 'F':
                 processReload();
+                break;
+            case 'h':
+            case 'H':
+                isControl = !isControl;
+                if( isControl ) {
+                    control.y = 100;
+                }
+                else {
+                    control.y = 900;
+                }
                 break;
         }
         return true;
