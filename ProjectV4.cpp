@@ -29,6 +29,7 @@ void DrawGameOver();
 void DrawStartTitres();
 void DrawTrajectory();
 void DrawAnswer();
+void DrawControl();
 
 void CalculateCatapult();
 void CalculateLever();
@@ -115,6 +116,7 @@ void Draw()
     DrawFinalCatapult();
     DrawScore();
     DrawAnswer();
+    DrawControl();
     DrawGameOver();
 
 
@@ -581,6 +583,17 @@ void DrawAnswer()
     txTextOut (500, 700, buffer);
 }
 
+void DrawControl()
+{
+    char buffer[100];
+    txSelectFont ("Verdana", 30);
+    txDrawText (325, 100, 1175, 500, "Катапульта: стрелки влево и вправо \n"
+                                     "Угол: стрелки вверх и вниз \n"
+                                     "Огонь: пробел \n"
+                                     "Перезарядка: F \n"
+                                     "Пауза: P \n"
+                                     "Рестарт: R");
+}
 LRESULT CALLBACK MyWndProc (HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
     const int minAngle = 90;
