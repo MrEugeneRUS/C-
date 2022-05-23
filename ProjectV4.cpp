@@ -26,6 +26,7 @@ void DrawFinalAngleValue();
 void DrawFinalCatapult();
 void DrawScore();
 void DrawGameOver();
+void DrawWin();
 void DrawStartTitres();
 void DrawTrajectory();
 void DrawAnswer();
@@ -47,6 +48,7 @@ coord wall   = {710, 440};
 coord rays   = {210, 5};
 coord stone  = {bucket.x, bucket.y};
 coord gameover = {300, 900};
+coord win = {500, 900};
 coord control = {325, 900};
 coord pause = {500, 900};
 
@@ -59,7 +61,7 @@ int answer = 0;
 int score = 0;
 
 
-coord warrior[] = {{870, 627}, {985, 627}, {1100, 627}, {1215, 627}, {1330, 627}};
+coord warrior[] = {{985, 627}, {1100, 627}, {1215, 627}, {1330, 627}, {1445, 627}};
 coord monteki   = {200, 627};
 COLORREF red  = RGB (204, 29, 64);
 COLORREF blue = RGB (0, 99, 198);
@@ -73,6 +75,7 @@ bool isCatapultMoving = false;
 bool isLeverMoving = false;
 bool isStoneMoving = false;
 bool isGameOver = false;
+bool isWin = false;
 bool isPause = false;
 bool isControl = false;
 
@@ -125,6 +128,7 @@ void Draw()
     DrawHint();
     DrawPause();
     DrawGameOver();
+    DrawWin();
 
 
     txEnd();
@@ -424,7 +428,6 @@ void Belt(coord warrior)
     txRectangle     (warrior.x - 43, warrior.y + 49, warrior.x + 43, warrior.y + 57);
 }
 
-
 void DrawWarrior (coord warrior, COLORREF color)
 {
     Legs    (warrior);
@@ -440,17 +443,18 @@ void DrawWarrior (coord warrior, COLORREF color)
     Belt    (warrior);
 }
 
+
 void CalculateCatapult()
 {
     const int speed = 1;
-    if ( catapult.x <= finalCatapult && !isGameOver && !isPause && catapult.x <= wall.x - 400) {
+    if ( catapult.x <= finalCatapult && !isGameOver && !isPause && catapult.x <= wall.x - 400 && !isWin) {
         catapult.x += speed;
         lever0.x += speed;
         lever1.x += speed;
         bucket.x += speed;
         monteki.x += speed;
     }
-    if ( catapult.x > finalCatapult && !isGameOver && !isPause ) {
+    if ( catapult.x > finalCatapult && !isGameOver && !isPause && !isWin) {
         catapult.x -= speed;
         lever0.x -= speed;
         lever1.x -= speed;
@@ -474,11 +478,12 @@ void CalculateLever()
         stone.y = bucket.y;
     }
 
-    if ( isLeverMoving && alphaDeg >= finalAngle && !isGameOver && !isPause ) {
+    if ( isLeverMoving && alphaDeg >= finalAngle && !isGameOver && !isPause && !isWin) {
         alphaDeg = 160 - e * t * t / 2;
         t += 3;
     }
-    if ( isLeverMoving && alphaDeg < finalAngle && !isStoneMoving && !isPause ) {
+
+    if ( isLeverMoving && alphaDeg < finalAngle && !isStoneMoving && !isPause && !isWin) {
         isStoneMoving = true;
         double stoneSpeed =  e * t * 162;
         stoneSpeedX = stoneSpeed * cos( alphaRad - M_PI/2 );
@@ -490,7 +495,7 @@ void CalculateLever()
 
 void CalculateStone()
 {
-    if ( isStoneMoving && stone.y <= 675 && !isGameOver && !isPause ) {
+    if ( isStoneMoving && stone.y <= 675 && !isGameOver && !isPause && !isWin) {
         const double deltaT = 0.1;
         stone.x += xDirection * stoneSpeedX * deltaT;
         stone.y += -stoneSpeedY * deltaT + (9.81 * deltaT * deltaT) / 2;
@@ -502,6 +507,11 @@ void CalculateStone()
 
                 warrior[i].y = 900;
                 score++;
+                if (score == 5) {
+                    win.y = 200;
+                    isWin = true;
+                    DrawWin();
+                }
             }
         }
 
@@ -564,6 +574,15 @@ void DrawGameOver()
     txTextOut (gameover.x, gameover.y, buffer);
 }
 
+void DrawWin()
+{
+    char buffer[100];
+    sprintf( buffer, "Победа!");
+    txSetColor(TX_GREEN, 10);
+    txSelectFont ("Verdana", 200);
+    txTextOut (win.x, win.y, buffer);
+}
+
 void DrawStartTitres()
 {
     txSetFillColor(TX_BLACK);
@@ -619,6 +638,7 @@ void DrawHint()
     txSelectFont ("Verdana", 40);
     txTextOut (500, 700, buffer);
 }
+
 LRESULT CALLBACK MyWndProc (HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 {
     const int minAngle = 90;
@@ -626,12 +646,12 @@ LRESULT CALLBACK MyWndProc (HWND window, UINT message, WPARAM wParam, LPARAM lPa
     if( message == WM_KEYDOWN ) {
         switch( wParam ) {
             case VK_UP:
-                if( finalAngle < maxAngle ) {
+                if( finalAngle < maxAngle && !isGameOver && !isWin) {
                     finalAngle++;
                 }
                 break;
             case VK_DOWN:
-                if( finalAngle > minAngle ) {
+                if( finalAngle > minAngle && !isGameOver && !isWin) {
                     finalAngle--;
                 }
                 break;
@@ -639,12 +659,14 @@ LRESULT CALLBACK MyWndProc (HWND window, UINT message, WPARAM wParam, LPARAM lPa
                 isLeverMoving = true;
                 break;
             case VK_RIGHT:
-                if(catapult.x <= wall.x - 400) {
+                if(catapult.x <= wall.x - 400 && !isGameOver && !isWin) {
                     finalCatapult++;
                 }
                 break;
             case VK_LEFT:
-                finalCatapult--;
+                if (!isGameOver && !isWin) {
+                    finalCatapult--;
+                }
                 break;
             case VK_ESCAPE:
                 needContinue = false;
@@ -695,6 +717,7 @@ LRESULT CALLBACK MyWndProc (HWND window, UINT message, WPARAM wParam, LPARAM lPa
 void processRestart()
 {
     isGameOver = false;
+    isWin = false;
     isCatapultMoving = false;
     isLeverMoving = false;
     isStoneMoving = false;
@@ -708,6 +731,7 @@ void processRestart()
     finalCatapult = 70;
 
     gameover.y = 900;
+    win.y = 900;
     catapult.x = 0;
     lever0.x = 202;
     stone.x = bucket.x;
@@ -741,7 +765,7 @@ void DrawTrajectory()
     double t = 0;
     double deg = 160;
     double rad = 0;
-    while( deg >= finalAngle ) {
+    while( deg >= finalAngle && !isGameOver && !isWin) {
         rad = deg * M_PI / 180;
         deg = 160 - e * t * t / 2;
         t += 3;
@@ -755,7 +779,7 @@ void DrawTrajectory()
     double y = lever0.y - 162 * sin(rad);
     double direction = 1;
 
-    while ( y <= 675 ) {
+    while ( y <= 675 && !isGameOver && !isWin) {
         txSetFillColor(TX_RED);
         txSetColor(TX_RED, 0);
         txCircle(x, y, 3);
