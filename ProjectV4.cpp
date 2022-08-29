@@ -539,7 +539,7 @@ void DrawFinalAngleValue()
 {
     char buffer[20];
     int angleToDisplay = finalAngle - 90;
-    sprintf( buffer, "Угол стрельбы: %d", angleToDisplay );
+    sprintf( buffer, "РЈРіРѕР» СЃС‚СЂРµР»СЊР±С‹: %d", angleToDisplay );
     txSetColor(TX_BLACK, 3);
     txSelectFont ("Verdana", 40);
     txTextOut (50, 750, buffer);
@@ -549,7 +549,7 @@ void DrawFinalAngleValue()
 void DrawFinalCatapult()
 {
     char buffer[100];
-    sprintf( buffer, "Координата катапульты: %d", finalCatapult );
+    sprintf( buffer, "РљРѕРѕСЂРґРёРЅР°С‚Р° РєР°С‚Р°РїСѓР»СЊС‚С‹: %d", finalCatapult );
     txSetColor(TX_BLACK, 3);
     txSelectFont ("Verdana", 40);
     txTextOut (50, 700, buffer);
@@ -558,7 +558,7 @@ void DrawFinalCatapult()
 void DrawScore()
 {
     char buffer[100];
-    sprintf( buffer, "Счёт: %d", score );
+    sprintf( buffer, "РЎС‡С‘С‚: %d", score );
     txSetColor(TX_BLACK, 3);
     txSelectFont ("Verdana", 60);
     txTextOut (1300, 0, buffer);
@@ -568,7 +568,7 @@ void DrawScore()
 void DrawGameOver()
 {
     char buffer[100];
-    sprintf( buffer, "Игра окончена");
+    sprintf( buffer, "РРіСЂР° РѕРєРѕРЅС‡РµРЅР°");
     txSetColor(TX_RED, 10);
     txSelectFont ("Verdana", 200);
     txTextOut (gameover.x, gameover.y, buffer);
@@ -577,7 +577,7 @@ void DrawGameOver()
 void DrawWin()
 {
     char buffer[100];
-    sprintf( buffer, "Победа!");
+    sprintf( buffer, "РџРѕР±РµРґР°!");
     txSetColor(TX_GREEN, 10);
     txSelectFont ("Verdana", 200);
     txTextOut (win.x, win.y, buffer);
@@ -589,12 +589,12 @@ void DrawStartTitres()
     txRectangle(0, 0, 1500, 800);
     txSetColor(TX_WHITE, 50);
     char bufferHeader[100];
-    sprintf( bufferHeader, "Моделирование процесса полёта снаряда катапульты \n");
+    sprintf( bufferHeader, "РњРѕРґРµР»РёСЂРѕРІР°РЅРёРµ РїСЂРѕС†РµСЃСЃР° РїРѕР»С‘С‚Р° СЃРЅР°СЂСЏРґР° РєР°С‚Р°РїСѓР»СЊС‚С‹ \n");
     txSelectFont ("Times New Roman", 100);
     txDrawText (325, 100, 1175, 500, bufferHeader);
 
     char bufferCreator[100];
-    sprintf( bufferCreator, "Автор: Павлов Евгений \n");
+    sprintf( bufferCreator, "РђРІС‚РѕСЂ: РџР°РІР»РѕРІ Р•РІРіРµРЅРёР№ \n");
     txSelectFont ("Times New Roman", 50);
     txDrawText (325, 500, 1175, 600, bufferCreator);
 
@@ -603,7 +603,7 @@ void DrawStartTitres()
 void DrawAnswer()
 {
     char buffer[100];
-    sprintf( buffer, "Ответ: %d", answer );
+    sprintf( buffer, "РћС‚РІРµС‚: %d", answer );
     txSetColor(TX_BLACK, 3);
     txSelectFont ("Verdana", 40);
     txTextOut (500, 750, buffer);
@@ -613,18 +613,18 @@ void DrawControl()
 {
     char buffer[100];
     txSelectFont ("Verdana", 30);
-    txDrawText (control.x, control.y, control.x + 850, control.y + 400, "Катапульта: стрелки влево и вправо \n"
-                                     "Угол: стрелки вверх и вниз \n"
-                                     "Огонь: пробел \n"
-                                     "Перезарядка: F \n"
-                                     "Пауза: P \n"
-                                     "Рестарт: R");
+    txDrawText (control.x, control.y, control.x + 850, control.y + 400, "РљР°С‚Р°РїСѓР»СЊС‚Р°: СЃС‚СЂРµР»РєРё РІР»РµРІРѕ Рё РІРїСЂР°РІРѕ \n"
+                                     "РЈРіРѕР»: СЃС‚СЂРµР»РєРё РІРІРµСЂС… Рё РІРЅРёР· \n"
+                                     "РћРіРѕРЅСЊ: РїСЂРѕР±РµР» \n"
+                                     "РџРµСЂРµР·Р°СЂСЏРґРєР°: F \n"
+                                     "РџР°СѓР·Р°: P \n"
+                                     "Р РµСЃС‚Р°СЂС‚: R");
 }
 
 void DrawPause()
 {
     char buffer[100];
-    sprintf( buffer, "Пауза");
+    sprintf( buffer, "РџР°СѓР·Р°");
     txSetColor(TX_BLACK, 3);
     txSelectFont ("Verdana", 80);
     txDrawText (pause.x, pause.y, pause.x + 500, pause.y + 400, buffer);
@@ -633,7 +633,7 @@ void DrawPause()
 void DrawHint()
 {
     char buffer[100];
-    sprintf( buffer, "H: показать управление");
+    sprintf( buffer, "H: РїРѕРєР°Р·Р°С‚СЊ СѓРїСЂР°РІР»РµРЅРёРµ");
     txSetColor(TX_BLACK, 3);
     txSelectFont ("Verdana", 40);
     txTextOut (500, 700, buffer);
